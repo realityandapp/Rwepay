@@ -84,6 +84,14 @@ module Rwepay::Common
     "#{result_params}&sign=#{md5_signed_string}"
   end
 
+  def self.get_request_params(options = {})
+    string_to_be_signed = create_sign_string options, false
+    md5_signed_string = Digest::MD5.hexdigest(string_to_be_signed).downcase
+    result_params = result_params_filter options, false
+
+    "#{result_params}&sign=#{md5_signed_string}"
+  end
+
   #sign_string :appid, :appkey, :noncestr, :package, :timestamp
   def self.pay_sign(sign_params = {})
     for_sign_string    = create_pay_sign_string sign_params
@@ -195,5 +203,6 @@ module Rwepay::Common
       return false, err
     end
   end
+
 
 end

@@ -98,7 +98,87 @@ module Rwepay
         false
       end
     end
+    
+    # 申请退款
+    def request_refund(options = {})
+      options = Rwepay::Common.configs_check options, [:transaction_id, :out_refund_no, :total_fee, :refund_fee, :op_user_passwd]
 
+      init_options = Hash.new 
+
+      # 填写为 1.1 时,操作员密码为 MD5(密码)值 
+      init_options[:service_version] = "1.1"
+      init_options[:partner] ||= @configs[:partner_id] 
+      init_options[:out_refund_no] = options[:out_refund_no]
+      init_options[:total_fee] = options[:total_fee]
+      init_options[:refund_fee] = options[:refund_fee]
+      init_options[:transaction_id] = options[:transaction_id]
+      init_options[:op_user_passwd] = options[:op_user_passwd]
+      init_options[:op_user_id] ||= @configs[:partner_id] 
+      init_options[:key] ||= @configs[:partner_key]
+
+      params = Rwepay::Common.get_request_params(init_options)
+
+      begin
+        conn = Faraday.new(url:  "https://mch.tenpay.com/refundapi/gateway/refund.xml?#{params}")
+        response = conn.get
+        response = response.body.encode("utf-8", "GB18030")
+        if response['retcode'] == "0"
+          return true, response
+        else
+          return false, response
+        end
+      rescue => err
+        return false, err
+      end
+    end
+
+    # 退款状态查询
+    def refund_query(options = {})
+      options = Rwepay::Common.configs_check options, [:transaction_id, :out_refund_no, :refund_id]
+      init_options = Hash.new
+
+      init_options[:out_refund_no] = options[:out_refund_no]
+      init_options[:partner] ||= @configs[:partner_id]
+      init_options[:refund_id] = options[:refund_id]
+      init_options[:transaction_id] = options[:transaction_id]
+      init_options[:key] ||= @configs[:partner_key]
+
+      params = Rwepay::Common.get_request_params(init_options)
+      begin
+        conn = Faraday.new(url:  "https://gw.tenpay.com/gateway/normalrefundquery.xml?#{params}")
+        response = conn.get
+        response = response.body.encode("utf-8", "GB18030")
+        if response['retcode'] == "0"
+          return true, response
+        else
+          return false, response
+        end
+      rescue => err
+        return false, err
+      end
+    end
+
+    # 对账单下载
+    def download_statement(options = {})
+      options = Rwepay::Common.configs_check options, [:trans_time]
+
+      init_options = Hash.new
+
+      init_options[:spid] = @configs[:partner_id] 
+      init_options[:trans_time] = options[:trans_time] 
+      init_options[:stamp] = Time.now.to_i
+      init_options[:key] = @configs[:partner_key]
+      
+      params = Rwepay::Common.get_request_params(init_options)
+      begin
+        conn = Faraday.new(url:  "http://mch.tenpay.com/cgi-bin/mchdown_real_new.cgi?#{params}")
+        response = conn.get 
+        response = response.body.encode("utf-8", "GB18030")
+      rescue => err
+        return false, err
+      end
+
+    end
   end
 
   # @TODO
