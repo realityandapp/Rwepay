@@ -84,10 +84,10 @@ module Rwepay::Common
     "#{result_params}&sign=#{md5_signed_string}"
   end
 
-  def self.get_request_params(options = {})
-    string_to_be_signed = create_sign_string options, false
-    md5_signed_string = Digest::MD5.hexdigest(string_to_be_signed).downcase
-    result_params = result_params_filter options, false
+  def self.get_request_params(options = {}, sort = false, upcase=true)
+    string_to_be_signed = create_sign_string options, sort
+    md5_signed_string = upcase ?  Digest::MD5.hexdigest(string_to_be_signed).upcase : Digest::MD5.hexdigest(string_to_be_signed).downcase
+    result_params = result_params_filter options, sort 
 
     "#{result_params}&sign=#{md5_signed_string}"
   end
