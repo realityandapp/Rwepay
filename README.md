@@ -118,7 +118,37 @@ In View:
             :feedback_id  => feedback_id
     }
     js_payment.update_feedback(options)
+    
+- 退款[request_refund]
 
+`op_user_passwd`是密码的md5值，此接口先要生成certificate， 用以下命令生成相应的cert和cert_key, 其中`xxxxx.pfx`在财付通申请成功后发来的邮件中：
+
+	 	openssl pkcs12 -in xxxxxx.pfx -nokeys -out tenpay.crt
+	 	openssl pkcs12 -in xxxxxx.pfx -out tenpay.pem -nodes 
+	 	
+
+
+		options = {
+ 					:out_trade_no=>"1409841644773",
+ 					:transaction_id=>"1291285501201408183183398789",
+ 					:out_refund_no=>"1033578274",
+ 					:total_fee=>"2",
+ 					:refund_fee=>"2",
+ 					:op_user_id=>"9121287801",
+ 					:op_user_passwd=>"e10adc3949ba59abbe56e057f20f883e",
+ 					:cert_path=>"/tmp/tenpay.crt",
+ 					:cert_key_path=>"/tmp/tenpay.pem"
+ 					}
+ 					
+ - 退款查询[refund_query]
+ 
+ 		options = {transaction_id: "1219285501201408183183358789", 
+ 					refund_id: "1111219285501201408194709531", 
+ 					out_refund_no: "1033537274"}
+ 					
+ - 对账单下载[download_statement]
+ 
+ 		options = { trans_time: "2014-08-12" }
 ### NativePayment
 
   TODO
