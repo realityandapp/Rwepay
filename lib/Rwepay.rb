@@ -124,12 +124,15 @@ module Rwepay
       cert = OpenSSL::X509::Certificate.new File.read(options[:cert_path])
       cert_key = OpenSSL::PKey::RSA.new( File.read(options[:cert_key_path]), @configs[:partner_id])
       query_url =   "https://mch.tenpay.com/refundapi/gateway/refund.xml?#{params}"
+      puts "sending request to : #{query_url}"
       begin
         conn = Faraday.new(url: query_url, ssl: {client_cert: cert, client_key: cert_key})
         response = conn.get
 
         # GBK encoding originally
-        response = response.body.encode("utf-8", "GB18030")
+        response = response.body 
+        response.force_encoding("GBK")
+        response.encode!("utf-8")
         result = Hash.from_xml(response)['root']
         if result['retcode'] == "0"
           return true, result
@@ -155,6 +158,7 @@ module Rwepay
       params = Rwepay::Common.get_request_params(init_options, true, true)
       begin
         conn = Faraday.new(url:  "https://gw.tenpay.com/gateway/normalrefundquery.xml?#{params}")
+
         response = conn.get
         response = Hash.from_xml(response.body.encode("utf-8", "GB18030"))['root']
         if response['retcode'] == "0"
