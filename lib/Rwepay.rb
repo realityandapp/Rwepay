@@ -107,18 +107,18 @@ module Rwepay
     def request_refund(options = {})
       options = Rwepay::Common.configs_check options, [:transaction_id, :out_refund_no, :total_fee, :refund_fee, :op_user_passwd, :cert_key_path, :cert_path, :ca_cert_path]
 
-      init_options = Hash.new 
-
-      # 填写为 1.1 时,操作员密码为 MD5(密码)值 
-      init_options[:service_version] = "1.1"
-      init_options[:partner] ||= @configs[:partner_id] 
-      init_options[:out_refund_no] = options[:out_refund_no]
-      init_options[:total_fee] = options[:total_fee]
-      init_options[:refund_fee] = options[:refund_fee]
-      init_options[:transaction_id] = options[:transaction_id]
-      init_options[:op_user_passwd] = options[:op_user_passwd]
-      init_options[:op_user_id] ||= @configs[:partner_id] 
-      init_options[:key] ||= @configs[:partner_key]
+      # service_version填写为 1.1 时,操作员密码为 MD5(密码)值 
+      init_options = {
+        service_version: "1.1",
+        partner: @configs[:partner_id],
+        out_refund_no: options[:out_refund_no],
+        total_fee: options[:total_fee],
+        refund_fee: options[:refund_fee],
+        transaction_id: options[:transaction_id],
+        op_user_passwd: options[:op_user_passwd],
+        op_user_id: @configs[:partner_id],
+        key: @configs[:partner_key]
+      }
 
       params = Rwepay::Common.get_request_params(init_options, true, true)
 
@@ -133,50 +133,52 @@ module Rwepay
       }
 
       query_url =   "https://mch.tenpay.com/refundapi/gateway/refund.xml?#{params}"
+
       puts "sending request to : #{query_url}"
       begin
         conn = Faraday.new(url: query_url, ssl: ssl_config)
         response = conn.get
-
         # GBK encoding originally
-        response = response.body 
-        response.force_encoding("GBK")
-        response.encode!("utf-8")
+        response = response.body.force_encoding("GBK").encode!("utf-8") 
         result = Hash.from_xml(response)['root']
-        if result['retcode'] == "0"
-          return true, result
-        else
-          return false, result 
-        end
       rescue => err
         return false, err
+      end
+
+      if result['retcode'] == "0"
+        return true, result
+      else
+        return false, result 
       end
     end
 
     # 退款状态查询
     def refund_query(options = {})
       options = Rwepay::Common.configs_check options, [:transaction_id, :out_refund_no, :refund_id]
-      init_options = Hash.new
-
-      init_options[:out_refund_no] = options[:out_refund_no]
-      init_options[:partner] ||= @configs[:partner_id]
-      init_options[:refund_id] = options[:refund_id]
-      init_options[:transaction_id] = options[:transaction_id]
-      init_options[:key] ||= @configs[:partner_key]
+      init_options = {
+        out_refund_no: options[:out_refund_no],
+        partner: @configs[:partner_id],
+        refund_id: options[:refund_id],
+        transaction_id: options[:transaction_id],
+        key: @configs[:partner_key]
+      }
 
       params = Rwepay::Common.get_request_params(init_options, true, true)
       begin
         conn = Faraday.new(url:  "https://gw.tenpay.com/gateway/normalrefundquery.xml?#{params}")
-
         response = conn.get
-        response = Hash.from_xml(response.body.encode("utf-8", "GB18030"))['root']
-        if response['retcode'] == "0"
-          return true, response
-        else
-          return false, response
-        end
+
+        # GBK encoding originally
+        response = response.body.force_encoding("GBK").encode!("utf-8") 
+        result = Hash.from_xml(response)['root']
       rescue => err
         return false, err
+      end
+
+      if result['retcode'] == "0"
+        return true, result
+      else
+        return false, result 
       end
     end
 
@@ -196,11 +198,11 @@ module Rwepay
       begin
         conn = Faraday.new(url:  "http://mch.tenpay.com/cgi-bin/mchdown_real_new.cgi?#{params}")
         response = conn.get 
-        response = response.body.encode("utf-8", "GB18030")
+        response = response.body.force_encoding("GBK").encode!("utf-8") 
       rescue => err
         return false, err
       end
-
+      response
     end
   end
 
