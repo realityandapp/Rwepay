@@ -103,8 +103,9 @@ module Rwepay
     # 用以下命令生成相应的cert和cert_key, 其中xxxxx.pfx在财付通申请成功后发来的邮件中
     # cert: openssl pkcs12 -in xxxxxx.pfx -nokeys -out tenpay.crt
     # cert_key: openssl pkcs12 -in xxxxxx.pfx -out tenpay.pem -nodes 
+    # ca_cert: 财付通ca证书，http://mch.tenpay.com/download/tenpay_ca_cert.crt
     def request_refund(options = {})
-      options = Rwepay::Common.configs_check options, [:transaction_id, :out_refund_no, :total_fee, :refund_fee, :op_user_passwd, :cert_key_path, :cert_path]
+      options = Rwepay::Common.configs_check options, [:transaction_id, :out_refund_no, :total_fee, :refund_fee, :op_user_passwd, :cert_key_path, :cert_path, :ca_cert_path]
 
       init_options = Hash.new 
 
@@ -123,10 +124,18 @@ module Rwepay
 
       cert = OpenSSL::X509::Certificate.new File.read(options[:cert_path])
       cert_key = OpenSSL::PKey::RSA.new( File.read(options[:cert_key_path]), @configs[:partner_id])
+      # very important here
+      ssl_config = {
+        client_cert: cert, 
+        client_key: cert_key, 
+        verify_mode: OpenSSL::SSL::VERIFY_PEER,
+        ca_file: options[:ca_cert_path]
+      }
+
       query_url =   "https://mch.tenpay.com/refundapi/gateway/refund.xml?#{params}"
       puts "sending request to : #{query_url}"
       begin
-        conn = Faraday.new(url: query_url, ssl: {client_cert: cert, client_key: cert_key})
+        conn = Faraday.new(url: query_url, ssl: ssl_config)
         response = conn.get
 
         # GBK encoding originally
