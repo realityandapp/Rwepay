@@ -165,15 +165,9 @@ module Rwepay
         key: @configs[:partner_key]
       }
 
-      # very important here
-      ssl_config = {
-        verify_mode: OpenSSL::SSL::VERIFY_PEER,
-        ca_file: options[:ca_cert_path]
-      }
-
       params = Rwepay::Common.get_request_params(init_options, true, true)
       query_url =  "https://gw.tenpay.com/gateway/normalrefundquery.xml?#{params}"
-      conn = Faraday.new(url: query_url, ssl: ssl_config)
+      conn = Faraday.new(url: query_url, ssl: {verify: false})
       begin
         response = conn.get
 
