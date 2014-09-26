@@ -135,19 +135,21 @@ module Rwepay
       query_url =   "https://mch.tenpay.com/refundapi/gateway/refund.xml?#{params}"
 
       puts "sending request to : #{query_url}"
+      conn = Faraday.new(url: query_url, ssl: ssl_config)
       begin
-        conn = Faraday.new(url: query_url, ssl: ssl_config)
         response = conn.get
         # GBK encoding originally
         response = response.body.force_encoding("GBK").encode!("utf-8") 
         result = Hash.from_xml(response)['root']
       rescue => err
+        Rails.logger.error "Failed to request refund for out_refund_no: #{options[:out_refund_no]}, with: #{err.message}" 
         return false, err
       end
 
       if result['retcode'] == "0"
         return true, result
       else
+        Rails.logger.error "Failed to request refund for out_refund_no: #{options[:out_refund_no]}, with: #{result}" 
         return false, result 
       end
     end
@@ -163,21 +165,30 @@ module Rwepay
         key: @configs[:partner_key]
       }
 
+      # very important here
+      ssl_config = {
+        verify_mode: OpenSSL::SSL::VERIFY_PEER,
+        ca_file: options[:ca_cert_path]
+      }
+
       params = Rwepay::Common.get_request_params(init_options, true, true)
+      query_url =  "https://gw.tenpay.com/gateway/normalrefundquery.xml?#{params}"
+      conn = Faraday.new(url: query_url, ssl: ssl_config)
       begin
-        conn = Faraday.new(url:  "https://gw.tenpay.com/gateway/normalrefundquery.xml?#{params}")
         response = conn.get
 
         # GBK encoding originally
         response = response.body.force_encoding("GBK").encode!("utf-8") 
         result = Hash.from_xml(response)['root']
       rescue => err
+        Rails.logger.error "Failed to query refund status for out_refund_no: #{options[:out_refund_no]}: #{err.message}" 
         return false, err
       end
 
       if result['retcode'] == "0"
         return true, result
       else
+        Rails.logger.error "Failed to query refund status for out_refund_no: #{options[:out_refund_no]}, with: #{result}" 
         return false, result 
       end
     end
