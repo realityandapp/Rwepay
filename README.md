@@ -141,6 +141,9 @@ In View:
  					:ca_cert_path=> "/tmp/tenpay_ca_cert.crt"
  					}
  					
+ 		# 发送退款请求
+ 		status, result = payment.request_refund(options)
+ 					
  - 退款查询[refund_query]
  
  		options = {transaction_id: "1219285501201408183183358789", 
