@@ -121,7 +121,7 @@ In View:
     
 - 退款[request_refund]
 
-`op_user_passwd`是密码的md5值，此接口先要生成certificate， 用以下命令生成相应的cert和cert_key, 其中`xxxxx.pfx`在财付通申请成功后发来的邮件中：
+`op_user_passwd`是密码的md5值，此接口先要生成certificate， 用以下命令生成相应的cert和cert_key, 其中`xxxxx.pfx`在财付通申请成功后发来的邮件中, `tenpay_ca_cert.crt`从财付通那里下载：
 
 	 	openssl pkcs12 -in xxxxxx.pfx -nokeys -out tenpay.crt
 	 	openssl pkcs12 -in xxxxxx.pfx -out tenpay.pem -nodes 
@@ -137,7 +137,8 @@ In View:
  					:op_user_id=>"9121287801",
  					:op_user_passwd=>"e10adc3949ba59abbe56e057f20f883e",
  					:cert_path=>"/tmp/tenpay.crt",
- 					:cert_key_path=>"/tmp/tenpay.pem"
+ 					:cert_key_path=>"/tmp/tenpay.pem",
+ 					:ca_cert_path=> "/tmp/tenpay_ca_cert.crt"
  					}
  					
  - 退款查询[refund_query]
