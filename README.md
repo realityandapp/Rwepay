@@ -142,6 +142,7 @@ In View:
  					}
  					
  		# 发送退款请求
+ 		payment = Rwepay::JSPayment.new configs
  		status, result = payment.request_refund(options)
  					
  - 退款查询[refund_query]
