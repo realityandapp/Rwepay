@@ -95,8 +95,8 @@ module Rwepay::Common
   #sign_string :appid, :appkey, :noncestr, :package, :timestamp
   def self.pay_sign(sign_params = {})
     for_sign_string    = create_pay_sign_string sign_params
-    sha1_signed_string = sha1_sign for_sign_string
-    sha1_signed_string
+    md5_signed_string = md5_sign for_sign_string
+    md5_signed_string
   end
 
   def self.get_timestamps

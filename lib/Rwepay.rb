@@ -30,7 +30,7 @@ module Rwepay
       final_params[:timeStamp] = Rwepay::Common.get_timestamps
       final_params[:nonceStr]  = Rwepay::Common.get_nonce_str
       final_params[:package]   = Rwepay::Common.get_package(brand_options)
-      final_params[:signType]  = 'SHA1'
+      final_params[:signType]  = 'MD5'
       final_params[:paySign]   = Rwepay::Common.pay_sign(
           :appid     => @configs[:app_id],
           :appkey    => @configs[:app_key],
